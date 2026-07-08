@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from .cleaning import normalize_for_search
+from .cleaning import meaningful_tokens, normalize_for_search
 from .config import AppConfig
 
 
@@ -22,15 +22,19 @@ class ProcedureGuide:
             score = 0
             for keyword in procedure.get("trigger_keywords", []):
                 normalized_keyword = normalize_for_search(keyword)
+                keyword_tokens = meaningful_tokens(keyword)
+                query_tokens = meaningful_tokens(query)
                 if normalized_keyword and normalized_keyword in normalized_query:
-                    score += 2
+                    score += 3
                 else:
-                    score += len(set(normalized_query.split()) & set(normalized_keyword.split()))
+                    overlap = len(query_tokens & keyword_tokens)
+                    if overlap >= 2:
+                        score += overlap
             if score > best_score:
                 best_score = score
                 best = procedure
 
-        return best if best_score > 0 else None
+        return best if best_score >= 2 else None
 
     def all(self) -> list[dict]:
         return list(self.procedures)

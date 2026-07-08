@@ -55,7 +55,21 @@ python scripts/calculate_fine.py --infraction "feu rouge" --delay 24h
 - classe ;
 - source officielle.
 
-## 5. Montrer l'application web
+## 5. Montrer le refus RAG
+
+Entrer une question volontairement inutile :
+
+```text
+cc?
+```
+
+Résultat attendu :
+
+- confiance faible ;
+- aucune source pertinente ;
+- message de refus au lieu d'une réponse inventée.
+
+## 6. Montrer l'application web
 
 ```bash
 python scripts/run_web.py
@@ -70,7 +84,7 @@ Pages à présenter :
 - Que faire maintenant ? ;
 - Sources.
 
-## 6. Montrer les tests
+## 7. Montrer les tests
 
 ```bash
 pytest

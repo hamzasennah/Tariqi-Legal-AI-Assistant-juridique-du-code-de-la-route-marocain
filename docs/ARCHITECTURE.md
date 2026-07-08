@@ -70,5 +70,7 @@ L'interface utilisateur est servie par FastAPI avec des routes API séparées :
 - Réponse limitée aux passages retrouvés.
 - Affichage obligatoire des sources.
 - Refus ou prudence si le score est faible.
+- Filtrage des passages sous le seuil de pertinence.
+- Refus automatique des questions trop courtes ou sans ancrage lexical dans les sources.
 - Mention claire : information générale, non conseil juridique définitif.
 - Priorité aux sources `A+` et `A`.

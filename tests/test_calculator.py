@@ -27,3 +27,15 @@ def test_calculate_unknown_infraction() -> None:
 
     assert result.matched is False
     assert result.amount is None
+
+
+def test_calculate_line_continuous_from_natural_phrase() -> None:
+    calculator = FineCalculator(ROOT / "data" / "structured" / "infractions_maroc.csv")
+
+    result = calculator.calculate("si je depasses une voiture dans une ligne continu?", delay="24h")
+
+    assert result.matched is True
+    assert result.amount == "400"
+    assert result.points == "4"
+    assert result.infraction is not None
+    assert result.infraction["id_infraction"] == "INF_015"

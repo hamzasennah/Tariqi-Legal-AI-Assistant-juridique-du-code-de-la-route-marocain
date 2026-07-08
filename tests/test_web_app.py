@@ -35,6 +35,33 @@ def test_ask_endpoint_returns_specific_red_light_answer() -> None:
     assert payload["sources"][0]["source_id"] == "narsa_tableau_points_pdf"
 
 
+def test_ask_endpoint_refuses_irrelevant_short_query() -> None:
+    response = client.post(
+        "/api/ask",
+        json={"question": "cc?", "top_k": 5},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["confidence"] == "faible"
+    assert payload["sources"] == []
+    assert "Je ne trouve pas d'information fiable" in payload["answer_markdown"]
+
+
+def test_ask_endpoint_handles_natural_line_continuous_question() -> None:
+    response = client.post(
+        "/api/ask",
+        json={"question": "si je depasses une voiture dans une ligne continu?", "top_k": 5},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["confidence"] == "élevé"
+    assert "Franchissement de la ligne continue" in payload["answer_markdown"]
+    assert "4 point" in payload["answer_markdown"]
+    assert payload["sources"][0]["source_id"] == "narsa_tableau_points_pdf"
+
+
 def test_calculate_endpoint() -> None:
     response = client.post(
         "/api/calculate",

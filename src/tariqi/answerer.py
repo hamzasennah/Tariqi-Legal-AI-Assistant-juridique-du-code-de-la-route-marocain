@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from .config import AppConfig
 from .calculator import FineCalculator
+from .cleaning import meaningful_tokens
 from .procedures import ProcedureGuide
 from .retriever import Retriever
 from .schemas import RAGAnswer, ScoredChunk
@@ -21,8 +22,31 @@ class TariqiAssistant:
     def ask(self, question: str, top_k: int = 5) -> RAGAnswer:
         chunks = self.retriever.retrieve(question, top_k=top_k)
         confidence = self._confidence(chunks)
+        fine_result = FineCalculator(self.config.infractions_csv).calculate(question)
+        procedure = ProcedureGuide(self.config.procedures_path).match(question)
 
-        if self.config.use_openai_answer and self.config.openai_api_key:
+        if fine_result.matched and fine_result.infraction:
+            structured_confidence = self._structured_confidence(fine_result.infraction, confidence)
+            answer_text = self._infraction_answer(
+                fine_result,
+                chunks,
+                structured_confidence,
+            )
+            return RAGAnswer(question, answer_text, chunks, structured_confidence, used_llm=False)
+
+        if procedure:
+            answer_text = self._procedure_answer(
+                procedure,
+                chunks,
+                confidence if chunks else "élevé",
+            )
+            return RAGAnswer(question, answer_text, chunks, confidence if chunks else "élevé", used_llm=False)
+
+        if not chunks:
+            answer_text = self._no_relevant_source_answer(question)
+            return RAGAnswer(question, answer_text, [], "faible", used_llm=False)
+
+        if self.config.use_openai_answer and self.config.openai_api_key and confidence != "faible":
             answer_text = self._answer_with_openai(question, chunks)
             return RAGAnswer(question, answer_text, chunks, confidence, used_llm=True)
 
@@ -60,23 +84,7 @@ class TariqiAssistant:
         confidence: str,
     ) -> str:
         if not chunks or chunks[0].score < 0.05:
-            return (
-                "### Réponse courte\n"
-                "Je ne trouve pas cette information dans les documents disponibles.\n\n"
-                "### Détails\n"
-                "La question doit être vérifiée dans une source officielle complémentaire.\n\n"
-                "### Prudence juridique\n"
-                f"{LEGAL_WARNING}"
-            )
-
-        procedure = ProcedureGuide(self.config.procedures_path).match(question)
-        fine_result = FineCalculator(self.config.infractions_csv).calculate(question)
-
-        if fine_result.matched and fine_result.infraction:
-            return self._infraction_answer(fine_result, chunks, confidence)
-
-        if procedure:
-            return self._procedure_answer(procedure, chunks, confidence)
+            return self._no_relevant_source_answer(question)
 
         best = chunks[0]
         details = self._evidence_bullets(chunks)
@@ -130,6 +138,31 @@ class TariqiAssistant:
             f"{LEGAL_WARNING}\n\n"
             "### Confiance\n"
             f"{confidence}"
+        )
+
+    def _no_relevant_source_answer(self, question: str) -> str:
+        tokens = meaningful_tokens(question)
+        detail = (
+            "La question est trop courte ou trop vague pour être reliée de manière fiable aux sources."
+            if not tokens
+            else "Aucun passage officiel suffisamment pertinent n'a été récupéré pour cette question."
+        )
+        return (
+            "### Réponse courte\n"
+            "Je ne trouve pas d'information fiable dans les sources disponibles pour répondre à cette question.\n\n"
+            "### Détails\n"
+            f"{detail} Dans un système RAG, l'assistant doit refuser de répondre quand la recherche documentaire ne trouve pas de contexte solide.\n\n"
+            "### Conséquences possibles\n"
+            "Répondre malgré une recherche faible pourrait produire une réponse inventée ou hors sujet.\n\n"
+            "### Procédure\n"
+            "Reformulez avec une vraie question liée au code de la route marocain, par exemple : "
+            "\"Combien de points pour un feu rouge ?\" ou \"Que faire pour contester une contravention ?\".\n\n"
+            "### Sources\n"
+            "- Aucune source suffisamment pertinente.\n\n"
+            "### Prudence juridique\n"
+            f"{LEGAL_WARNING}\n\n"
+            "### Confiance\n"
+            "faible"
         )
 
     def _procedure_answer(self, procedure: dict, chunks: list[ScoredChunk], confidence: str) -> str:
@@ -225,3 +258,9 @@ class TariqiAssistant:
         if best >= 0.12:
             return "moyen"
         return "faible"
+
+    def _structured_confidence(self, row: dict, fallback: str) -> str:
+        trust = str(row.get("confiance", "")).upper()
+        if trust in {"A+", "A"}:
+            return "élevé"
+        return fallback

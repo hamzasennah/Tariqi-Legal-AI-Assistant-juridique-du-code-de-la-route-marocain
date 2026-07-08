@@ -72,6 +72,7 @@ async function postJson(url, payload) {
 }
 
 function setLoading(element, message) {
+  element.classList.remove("hidden");
   element.classList.remove("error");
   element.textContent = message;
 }
@@ -115,10 +116,12 @@ askForm.addEventListener("submit", async (event) => {
   try {
     const data = await postJson("/api/ask", { question, top_k: 5 });
     answerState.textContent = "";
+    answerState.classList.add("hidden");
     answerCard.innerHTML = renderMarkdown(data.answer_markdown);
     answerCard.classList.remove("hidden");
     renderSources(data.sources);
   } catch (error) {
+    answerState.classList.remove("hidden");
     answerState.textContent = error.message;
     answerState.classList.add("error");
   }

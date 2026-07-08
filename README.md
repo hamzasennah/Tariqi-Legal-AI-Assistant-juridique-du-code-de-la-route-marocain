@@ -151,6 +151,18 @@ Chaque réponse doit contenir :
 - une remarque de prudence juridique ;
 - un niveau de confiance.
 
+## Garde-fous RAG
+
+L'assistant ne doit pas répondre à tout prix. Si la question est trop courte, hors sujet
+ou sans passage officiel suffisamment pertinent, il doit refuser de répondre et afficher :
+
+- une confiance faible ;
+- aucune source récupérée ;
+- une invitation à reformuler une vraie question liée au code de la route marocain.
+
+Ce comportement évite le faux RAG, c'est-à-dire une réponse générée à partir de passages
+faiblement liés ou choisis par hasard.
+
 ## Licence et prudence
 
 Le code du projet peut être adapté librement selon la licence choisie par le propriétaire du dépôt. Les documents officiels restent la propriété de leurs éditeurs institutionnels. Ne pas redistribuer de PDF officiel sans vérifier les conditions applicables.
