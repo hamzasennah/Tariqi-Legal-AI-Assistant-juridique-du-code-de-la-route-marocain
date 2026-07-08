@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ app_name }}</title>
+    <link rel="stylesheet" href="/static/css/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#assistant" aria-label="Accueil Tariqi Legal AI">
+        <span class="brand-mark">T</span>
+        <span>
+          <strong>Tariqi Legal AI</strong>
+          <small>Code de la route marocain</small>
+        </span>
+      </a>
+      <nav class="nav">
+        <a href="#assistant">Assistant</a>
+        <a href="#calculator">Amendes</a>
+        <a href="#procedure">Procédure</a>
+        <a href="#sources">Sources</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Assistant juridique sourcé</p>
+          <h1>Comprendre une infraction, une amende ou une démarche en quelques secondes.</h1>
+          <p class="hero-copy">
+            Les réponses s'appuient sur les sources institutionnelles marocaines listées dans le projet :
+            SGG, NARSA, Khadamat NARSA et ministères concernés.
+          </p>
+        </div>
+        <div class="hero-panel">
+          <span class="status-dot"></span>
+          <strong>Réponses avec citations</strong>
+          <p>Chaque réponse affiche les sources utilisées et une prudence juridique.</p>
+        </div>
+      </section>
+
+      <section id="assistant" class="workspace">
+        <div class="panel main-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Module 1</p>
+              <h2>Assistant juridique</h2>
+            </div>
+          </div>
+
+          <form id="ask-form" class="question-form">
+            <label for="question">Votre question</label>
+            <textarea
+              id="question"
+              name="question"
+              rows="4"
+              placeholder="Exemple : Combien de points sont retirés pour un feu rouge ?"
+            >Combien de points sont retirés pour un feu rouge ?</textarea>
+            <div class="form-actions">
+              <button type="submit">Analyser la question</button>
+              <button type="button" class="secondary" data-example="Que faire si je n'étais pas le conducteur du véhicule ?">
+                Exemple procédure
+              </button>
+              <button type="button" class="secondary" data-example="Que risque-t-on si on conduit sans permis ?">
+                Exemple juridique
+              </button>
+            </div>
+          </form>
+
+          <div id="answer-state" class="state empty">
+            Posez une question pour obtenir une réponse structurée.
+          </div>
+          <article id="answer-card" class="answer-card hidden"></article>
+        </div>
+
+        <aside class="panel sources-panel">
+          <p class="eyebrow">Sources récupérées</p>
+          <div id="source-list" class="source-list">
+            <p class="muted">Les sources apparaîtront ici après analyse.</p>
+          </div>
+        </aside>
+      </section>
+
+      <section id="calculator" class="grid-two">
+        <div class="panel">
+          <p class="eyebrow">Module 2</p>
+          <h2>Calculateur d'amende et de points</h2>
+          <form id="calc-form" class="compact-form">
+            <label for="infraction">Infraction</label>
+            <input id="infraction" value="feu rouge" />
+            <label for="delay">Délai de paiement</label>
+            <select id="delay">
+              <option value="24h">24h</option>
+              <option value="15j">15 jours</option>
+              <option value="30j">30 jours</option>
+            </select>
+            <button type="submit">Calculer</button>
+          </form>
+          <div id="calc-result" class="result-box muted">Aucun calcul lancé.</div>
+        </div>
+
+        <div id="procedure" class="panel">
+          <p class="eyebrow">Module 3</p>
+          <h2>Que faire maintenant ?</h2>
+          <form id="procedure-form" class="compact-form">
+            <label for="procedure-query">Situation</label>
+            <input id="procedure-query" value="Je veux déposer une réclamation" />
+            <button type="submit">Trouver la procédure</button>
+          </form>
+          <div id="procedure-result" class="result-box muted">Aucune procédure sélectionnée.</div>
+        </div>
+      </section>
+
+      <section id="sources" class="panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Module 4</p>
+            <h2>Sources officielles</h2>
+          </div>
+          <button id="load-sources" class="secondary">Afficher les sources</button>
+        </div>
+        <div id="sources-table" class="sources-table muted">Cliquez pour charger le manifeste des sources.</div>
+      </section>
+    </main>
+
+    <footer>
+      Tariqi Legal AI fournit une information générale. Les textes officiels et les autorités compétentes restent prioritaires.
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+  </body>
+</html>

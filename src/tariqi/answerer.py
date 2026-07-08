@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from .config import AppConfig
 from .calculator import FineCalculator
+from .procedures import ProcedureGuide
 from .retriever import Retriever
 from .schemas import RAGAnswer, ScoredChunk
 
@@ -68,24 +69,28 @@ class TariqiAssistant:
                 f"{LEGAL_WARNING}"
             )
 
-        structured = self._structured_infraction_block(question)
+        procedure = ProcedureGuide(self.config.procedures_path).match(question)
+        fine_result = FineCalculator(self.config.infractions_csv).calculate(question)
+
+        if fine_result.matched and fine_result.infraction:
+            return self._infraction_answer(fine_result, chunks, confidence)
+
+        if procedure:
+            return self._procedure_answer(procedure, chunks, confidence)
+
         best = chunks[0]
-        details = "\n".join(
-            f"- {item.chunk.text}" for item in chunks[:3] if item.score >= 0.03
-        )
-        sources = "\n".join(f"- {item.source_line()}" for item in chunks[:3])
+        details = self._evidence_bullets(chunks)
+        sources = self._source_bullets(chunks)
 
         return (
             "### Réponse courte\n"
-            f"{structured or best.chunk.text}\n\n"
+            f"{best.chunk.text}\n\n"
             "### Détails\n"
             f"{details}\n\n"
             "### Conséquences possibles\n"
-            "Les conséquences peuvent inclure une amende, un retrait de points ou une "
-            "procédure administrative/judiciaire selon la nature de l'infraction.\n\n"
+            f"{self._generic_consequences(chunks)}\n\n"
             "### Procédure\n"
-            "Vérifier l'avis ou le texte applicable, respecter les délais, conserver les "
-            "preuves et utiliser les canaux officiels.\n\n"
+            f"{self._generic_procedure(chunks)}\n\n"
             "### Sources\n"
             f"{sources}\n\n"
             "### Prudence juridique\n"
@@ -94,22 +99,102 @@ class TariqiAssistant:
             f"{confidence}"
         )
 
-    def _structured_infraction_block(self, question: str) -> str:
-        calculator = FineCalculator(self.config.infractions_csv)
-        result = calculator.calculate(question)
-        if not result.matched or not result.infraction:
-            return ""
+    def _infraction_answer(self, result, chunks: list[ScoredChunk], confidence: str) -> str:
         row = result.infraction
-        parts = [
-            f"Infraction reconnue dans le CSV structuré : {row['nom_infraction']}.",
-            f"Points à retirer : {row['points_retires']}.",
-        ]
-        if result.amount:
-            parts.append(f"Montant indicatif si paiement dans le délai 24h : {result.amount} DH.")
-        else:
-            parts.append("Montant non calculé dans la base structurée, car le cas peut relever d'une procédure judiciaire ou spécifique.")
-        parts.append(f"Source : {row['source']} - {row['document']} ({row['article_ou_page']}).")
-        return " ".join(parts)
+        amount = (
+            f"{result.amount} DH si le délai sélectionné est {result.delay}"
+            if result.amount
+            else "montant non calculé dans la base structurée"
+        )
+        notes = row.get("notes") or "Vérifier le cas exact dans la source officielle."
+
+        return (
+            "### Réponse courte\n"
+            f"{row['nom_infraction']} entraîne {row['points_retires']} point(s) à retirer. "
+            f"Montant indicatif : {amount}.\n\n"
+            "### Détails\n"
+            f"- Type : {row['type_infraction']}.\n"
+            f"- Classe : {row['classe']}.\n"
+            f"- Sanction possible : {row['sanction_possible']}.\n"
+            f"- Précision : {notes}\n\n"
+            "### Conséquences possibles\n"
+            "Le conducteur peut être concerné par une amende, un retrait de points et, "
+            "selon le cas, une procédure administrative ou judiciaire.\n\n"
+            "### Procédure\n"
+            "Vérifier l'avis de contravention, respecter le délai applicable, utiliser un "
+            "canal officiel de paiement ou de contestation, puis conserver la preuve de la démarche.\n\n"
+            "### Sources\n"
+            f"- {row['source']} - {row['document']} - {row['article_ou_page']}.\n"
+            f"{self._source_bullets(chunks)}\n\n"
+            "### Prudence juridique\n"
+            f"{LEGAL_WARNING}\n\n"
+            "### Confiance\n"
+            f"{confidence}"
+        )
+
+    def _procedure_answer(self, procedure: dict, chunks: list[ScoredChunk], confidence: str) -> str:
+        steps = "\n".join(f"- {step}" for step in procedure.get("steps", []))
+        return (
+            "### Réponse courte\n"
+            f"{procedure['summary']}\n\n"
+            "### Détails\n"
+            f"{steps}\n\n"
+            "### Conséquences possibles\n"
+            "Le non-respect d'un délai ou l'absence de justificatif peut rendre la démarche "
+            "plus difficile. Il faut donc conserver les preuves de dépôt ou de paiement.\n\n"
+            "### Procédure\n"
+            f"{steps}\n\n"
+            "### Sources\n"
+            f"- Source officielle : {procedure.get('url', '')}\n"
+            f"{self._source_bullets(chunks)}\n\n"
+            "### Prudence juridique\n"
+            f"{procedure.get('warning', LEGAL_WARNING)}\n\n"
+            "### Confiance\n"
+            f"{confidence}"
+        )
+
+    def _evidence_bullets(self, chunks: list[ScoredChunk]) -> str:
+        bullets = []
+        seen = set()
+        for item in chunks[:4]:
+            title = item.chunk.metadata.get("title", item.chunk.source_id)
+            if title in seen:
+                continue
+            seen.add(title)
+            bullets.append(f"- {item.chunk.text}")
+        return "\n".join(bullets)
+
+    def _source_bullets(self, chunks: list[ScoredChunk]) -> str:
+        bullets = []
+        seen = set()
+        for item in chunks[:4]:
+            meta = item.chunk.metadata
+            key = (meta.get("authority"), meta.get("title"), meta.get("article_or_section"))
+            if key in seen:
+                continue
+            seen.add(key)
+            bullets.append(f"- {item.source_line()}")
+        return "\n".join(bullets)
+
+    def _generic_consequences(self, chunks: list[ScoredChunk]) -> str:
+        themes = {str(item.chunk.metadata.get("theme", "")) for item in chunks[:3]}
+        if "permis_points" in themes or "points" in themes:
+            return "La conséquence principale peut être une réduction du capital de points, selon l'infraction établie."
+        if "procedure" in themes:
+            return "La conséquence dépend surtout du respect des délais et de la qualité des justificatifs fournis."
+        if "amendes" in themes:
+            return "La conséquence peut être une amende transactionnelle et forfaitaire, selon le texte applicable."
+        return "Les conséquences peuvent varier selon le texte applicable, la qualification de l'infraction et la procédure suivie."
+
+    def _generic_procedure(self, chunks: list[ScoredChunk]) -> str:
+        themes = {str(item.chunk.metadata.get("theme", "")) for item in chunks[:3]}
+        if "paiement" in themes:
+            return "Vérifier l'avis, respecter le délai de paiement et utiliser un canal officiel."
+        if "procedure" in themes:
+            return "Identifier la démarche pertinente, respecter le délai et conserver la preuve de dépôt."
+        if "sources" in themes:
+            return "Consulter le portail officiel indiqué et vérifier la version consolidée ou publiée."
+        return "Vérifier la source officielle citée, identifier le cas exact et demander confirmation à l'autorité compétente en cas de doute."
 
     def _build_context(self, chunks: list[ScoredChunk]) -> str:
         parts: list[str] = []

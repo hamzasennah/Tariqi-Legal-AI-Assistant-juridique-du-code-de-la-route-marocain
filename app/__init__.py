@@ -1,1 +1,1 @@
-"""Streamlit application package for Tariqi Legal AI."""
+"""FastAPI application package for Tariqi Legal AI."""
