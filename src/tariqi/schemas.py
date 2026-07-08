@@ -84,6 +84,9 @@ class RAGAnswer:
     used_llm: bool
 
     def to_markdown(self) -> str:
+        if "### Sources" in self.answer_text:
+            return self.answer_text
+
         source_lines = "\n".join(f"- {item.source_line()}" for item in self.sources)
         return (
             f"{self.answer_text}\n\n"

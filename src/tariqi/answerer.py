@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from .config import AppConfig
+from .calculator import FineCalculator
 from .retriever import Retriever
 from .schemas import RAGAnswer, ScoredChunk
 
@@ -67,6 +68,7 @@ class TariqiAssistant:
                 f"{LEGAL_WARNING}"
             )
 
+        structured = self._structured_infraction_block(question)
         best = chunks[0]
         details = "\n".join(
             f"- {item.chunk.text}" for item in chunks[:3] if item.score >= 0.03
@@ -75,7 +77,7 @@ class TariqiAssistant:
 
         return (
             "### Réponse courte\n"
-            f"{best.chunk.text}\n\n"
+            f"{structured or best.chunk.text}\n\n"
             "### Détails\n"
             f"{details}\n\n"
             "### Conséquences possibles\n"
@@ -91,6 +93,23 @@ class TariqiAssistant:
             "### Confiance\n"
             f"{confidence}"
         )
+
+    def _structured_infraction_block(self, question: str) -> str:
+        calculator = FineCalculator(self.config.infractions_csv)
+        result = calculator.calculate(question)
+        if not result.matched or not result.infraction:
+            return ""
+        row = result.infraction
+        parts = [
+            f"Infraction reconnue dans le CSV structuré : {row['nom_infraction']}.",
+            f"Points à retirer : {row['points_retires']}.",
+        ]
+        if result.amount:
+            parts.append(f"Montant indicatif si paiement dans le délai 24h : {result.amount} DH.")
+        else:
+            parts.append("Montant non calculé dans la base structurée, car le cas peut relever d'une procédure judiciaire ou spécifique.")
+        parts.append(f"Source : {row['source']} - {row['document']} ({row['article_ou_page']}).")
+        return " ".join(parts)
 
     def _build_context(self, chunks: list[ScoredChunk]) -> str:
         parts: list[str] = []
