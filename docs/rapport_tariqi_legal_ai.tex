@@ -45,7 +45,7 @@
 
 \title{\textbf{Tariqi Legal AI}\\
 \large Assistant juridique RAG du code de la route marocain}
-\author{Projet Python, RAG et Streamlit}
+\author{Projet Python, RAG et FastAPI}
 \date{2026}
 
 \begin{document}
@@ -70,7 +70,7 @@ claire, sourcée et prudente à partir de sources institutionnelles marocaines.
     \item Citer les sources utilisées dans chaque réponse.
     \item Calculer les montants indicatifs et points retirés à partir d'un CSV structuré.
     \item Proposer des procédures simples pour paiement, déclaration et réclamation.
-    \item Fournir une application Streamlit utilisable et une interface CLI.
+    \item Fournir une application web FastAPI utilisable et une interface CLI.
 \end{itemize}
 
 \section{Sources}
@@ -97,7 +97,7 @@ comme base principale de réponse.
 
 \begin{lstlisting}
 tariqi-legal-ai/
-|-- app/                  Interface Streamlit
+|-- app/                  Application FastAPI, templates et fichiers statiques
 |-- data/
 |   |-- raw/              Sources brutes locales non versionnées
 |   |-- seed/             Corpus de départ
@@ -211,10 +211,10 @@ python scripts/ask.py "Combien de points sont retirés pour un feu rouge ?"
 python scripts/calculate_fine.py --infraction "feu rouge" --delay 24h
 \end{lstlisting}
 
-\subsection{Lancer Streamlit}
+\subsection{Lancer l'application web}
 
 \begin{lstlisting}[language=bash]
-streamlit run app/streamlit_app.py
+python scripts/run_web.py
 \end{lstlisting}
 
 \section{Évaluation}

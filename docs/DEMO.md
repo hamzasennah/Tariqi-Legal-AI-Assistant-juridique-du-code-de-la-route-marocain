@@ -55,11 +55,13 @@ python scripts/calculate_fine.py --infraction "feu rouge" --delay 24h
 - classe ;
 - source officielle.
 
-## 5. Montrer l'application Streamlit
+## 5. Montrer l'application web
 
 ```bash
-streamlit run app/streamlit_app.py
+python scripts/run_web.py
 ```
+
+Puis ouvrir `http://127.0.0.1:8000`.
 
 Pages à présenter :
 

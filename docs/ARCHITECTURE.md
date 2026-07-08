@@ -26,7 +26,7 @@ Sources officielles
 ## Couches techniques
 
 ```text
-app/                    Interface Streamlit
+app/                    Application web FastAPI, templates HTML et assets statiques
 scripts/                Commandes CLI
 src/tariqi/             Code métier
 data/raw/               Sources téléchargées localement, non versionnées
@@ -48,7 +48,7 @@ tests/                  Tests unitaires
 - `embeddings.py` : backend local ou OpenAI.
 - `vector_store.py` : index JSON simple, portable et testable.
 - `retriever.py` : recherche des passages pertinents.
-- `answerer.py` : réponse structurée avec ou sans LLM.
+- `answerer.py` : réponse structurée avec LLM si disponible, sinon fallback local spécialisé.
 - `calculator.py` : calculateur d'amendes et points.
 - `procedures.py` : guides pratiques paiement, déclaration, réclamation.
 - `pipeline.py` : construction complète de l'index.
@@ -56,6 +56,14 @@ tests/                  Tests unitaires
 ## Choix important
 
 Le dépôt contient un index JSON simple au lieu d'imposer FAISS ou ChromaDB directement. Cette décision rend le projet exécutable sur Windows, Linux et macOS sans compilation native. Pour une version production, `requirements-faiss.txt` prépare l'installation de FAISS.
+
+L'interface utilisateur est servie par FastAPI avec des routes API séparées :
+
+- `GET /` : application web ;
+- `POST /api/ask` : assistant juridique ;
+- `POST /api/calculate` : calculateur d'amende ;
+- `GET /api/procedure` : recherche de procédure ;
+- `GET /api/sources` : manifeste des sources.
 
 ## Garde-fous
 

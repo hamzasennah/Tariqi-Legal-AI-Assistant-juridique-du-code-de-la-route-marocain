@@ -20,8 +20,9 @@ Le projet est conçu pour répondre uniquement à partir de sources institutionn
 ```text
 tariqi-legal-ai/
 ├── app/
-│   ├── streamlit_app.py
-│   └── pages/
+│   ├── main.py
+│   ├── static/
+│   └── templates/
 ├── data/
 │   ├── raw/
 │   ├── seed/
@@ -89,11 +90,21 @@ vectorstore/tariqi_index.json
 python scripts/ask.py "Combien de points sont retirés pour un feu rouge ?"
 ```
 
-## Lancer l'application Streamlit
+## Lancer l'application web
 
 ```bash
-streamlit run app/streamlit_app.py
+python scripts/run_web.py
 ```
+
+Puis ouvrir :
+
+```text
+http://127.0.0.1:8000
+```
+
+L'application web est construite avec FastAPI, HTML, CSS et JavaScript. Elle ne montre pas
+les détails internes comme le backend d'embeddings ou l'état du LLM dans l'interface
+utilisateur.
 
 ## Calculateur d'amende
 
