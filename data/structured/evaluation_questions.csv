@@ -1,0 +1,7 @@
+id,question,expected_source_id,expected_theme
+Q001,Combien de points sont retirés pour un feu rouge ?,narsa_tableau_points_pdf,points
+Q002,Que faire si je n'étais pas le conducteur du véhicule ?,khadamat_declaration,procedure
+Q003,Comment déposer une réclamation après une contravention ?,khadamat_reclamation,procedure
+Q004,C'est quoi le permis à points ?,khadamat_permis_points,permis_points
+Q005,Que risque-t-on si on conduit sans permis ?,loi_52_05_code_route,permis
+Q006,Où trouver les textes consolidés du code de la route ?,sgg_textes_consolides,sources

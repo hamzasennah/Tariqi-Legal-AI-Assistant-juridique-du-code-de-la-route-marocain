@@ -1,0 +1,64 @@
+[
+  {
+    "id": "payer_contravention",
+    "title": "Payer une contravention",
+    "trigger_keywords": ["payer", "paiement", "amende", "contravention"],
+    "summary": "Vérifier l'avis de contravention, respecter le délai indiqué et payer via un canal officiel disponible.",
+    "steps": [
+      "Lire l'avis de contravention et vérifier l'identité, l'immatriculation, la date et l'infraction.",
+      "Vérifier le délai applicable au paiement.",
+      "Utiliser un canal officiel indiqué par NARSA ou les services publics de paiement.",
+      "Conserver la preuve de paiement.",
+      "Vérifier ensuite l'effet éventuel sur le capital de points."
+    ],
+    "source_id": "khadamat_paiement_infractions",
+    "url": "https://khadamatnarsa.ma/fr/services/infractions-routieres/paiement",
+    "warning": "Le paiement peut valoir reconnaissance de l'infraction dans les cas prévus et peut entraîner le retrait de points."
+  },
+  {
+    "id": "declarer_autre_conducteur",
+    "title": "Déclarer que le véhicule était conduit par une autre personne",
+    "trigger_keywords": ["je n'étais pas", "pas conducteur", "déclarer conducteur", "autre conducteur"],
+    "summary": "La déclaration doit être faite dans le délai indiqué par Khadamat NARSA lorsque le destinataire de l'avis n'était pas le conducteur.",
+    "steps": [
+      "Vérifier la date de notification de l'avis.",
+      "Préparer les informations permettant d'identifier le conducteur réel.",
+      "Effectuer la déclaration via la procédure officielle ou auprès du service compétent.",
+      "Conserver une preuve du dépôt de la déclaration."
+    ],
+    "source_id": "khadamat_declaration",
+    "url": "https://khadamatnarsa.ma/fr/declaration",
+    "warning": "Khadamat NARSA mentionne un délai de 30 jours à compter de la notification pour la déclaration."
+  },
+  {
+    "id": "reclamer_contravention",
+    "title": "Déposer une réclamation",
+    "trigger_keywords": ["contester", "réclamation", "reclamer", "erreur", "radar"],
+    "summary": "La réclamation sert à contester un avis de contravention selon la procédure officielle.",
+    "steps": [
+      "Lire l'avis et identifier précisément le motif de contestation.",
+      "Réunir les justificatifs utiles.",
+      "Respecter le délai mentionné par la source officielle.",
+      "Déposer la réclamation auprès du service compétent ou via le canal indiqué.",
+      "Conserver l'accusé ou la preuve de dépôt."
+    ],
+    "source_id": "khadamat_reclamation",
+    "url": "https://khadamatnarsa.ma/fr/reclamation",
+    "warning": "Ne pas laisser expirer le délai de réclamation. En cas de doute, contacter directement le service compétent."
+  },
+  {
+    "id": "comprendre_retrait_points",
+    "title": "Comprendre le retrait de points",
+    "trigger_keywords": ["points", "permis à points", "retrait", "récupérer points"],
+    "summary": "Le permis à points repose sur un capital qui peut diminuer après certaines infractions et être récupéré sous conditions.",
+    "steps": [
+      "Identifier l'infraction et le nombre de points associé.",
+      "Vérifier si l'infraction est reconnue par paiement ou par décision judiciaire définitive.",
+      "Consulter le solde de points via les services officiels disponibles.",
+      "Vérifier les conditions de récupération des points."
+    ],
+    "source_id": "khadamat_retrait_points",
+    "url": "https://khadamatnarsa.ma/fr/retrait-de-points-par-delits-et-infractions",
+    "warning": "Le retrait de points affecte les catégories du permis détenues par le titulaire."
+  }
+]
