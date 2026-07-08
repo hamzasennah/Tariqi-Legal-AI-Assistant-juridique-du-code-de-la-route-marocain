@@ -8,6 +8,48 @@ from .cleaning import normalize_for_search
 from .config import AppConfig
 
 
+STOPWORDS = {
+    "a",
+    "au",
+    "aux",
+    "avec",
+    "ce",
+    "cette",
+    "combien",
+    "dans",
+    "de",
+    "des",
+    "du",
+    "elle",
+    "en",
+    "est",
+    "et",
+    "il",
+    "je",
+    "la",
+    "le",
+    "les",
+    "on",
+    "ou",
+    "par",
+    "point",
+    "points",
+    "pour",
+    "que",
+    "qui",
+    "quoi",
+    "retire",
+    "retires",
+    "risque",
+    "sans",
+    "sont",
+    "sur",
+    "un",
+    "une",
+    "vous",
+}
+
+
 @dataclass(frozen=True)
 class FineResult:
     matched: bool
@@ -31,17 +73,20 @@ class FineCalculator:
 
     def search(self, query: str, limit: int = 5) -> list[dict[str, str]]:
         normalized_query = normalize_for_search(query)
-        query_tokens = set(normalized_query.split())
+        query_tokens = self._meaningful_tokens(normalized_query)
+        if not query_tokens:
+            return []
+
         scored: list[tuple[float, dict[str, str]]] = []
 
         for row in self.rows:
             label = normalize_for_search(row["nom_infraction"])
-            label_tokens = set(label.split())
+            label_tokens = self._meaningful_tokens(label)
             overlap = len(query_tokens & label_tokens)
             score = overlap / max(len(query_tokens), 1)
             if normalized_query and normalized_query in label:
                 score += 1.0
-            if score > 0:
+            if score >= 0.35:
                 scored.append((score, row))
 
         scored.sort(key=lambda item: item[0], reverse=True)
@@ -93,3 +138,10 @@ class FineCalculator:
         if "30" in normalized:
             return "montant_30j"
         return "montant_24h"
+
+    def _meaningful_tokens(self, normalized_text: str) -> set[str]:
+        return {
+            token
+            for token in normalized_text.split()
+            if len(token) > 1 and token not in STOPWORDS
+        }
