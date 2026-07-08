@@ -110,6 +110,13 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
+## Démonstration et rapport
+
+- Guide de démonstration : `docs/DEMO.md`
+- Rapport LaTeX : `docs/rapport_tariqi_legal_ai.tex`
+- Architecture : `docs/ARCHITECTURE.md`
+- Dictionnaire des données : `docs/DATA_DICTIONARY.md`
+
 ## Sources principales
 
 Les sources suivies par le projet sont listées dans `data/raw/sources_manifest.json` et expliquées dans `docs/SOURCES.md`.

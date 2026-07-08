@@ -1,0 +1,278 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{enumitem}
+
+\geometry{margin=2.3cm}
+\setlength{\parskip}{0.6em}
+\setlength{\parindent}{0pt}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black
+}
+
+\definecolor{codebg}{HTML}{F7F8FA}
+\definecolor{codeborder}{HTML}{D8DDE6}
+\definecolor{codekw}{HTML}{0F4C81}
+\definecolor{codestring}{HTML}{7A3E00}
+\definecolor{codecomment}{HTML}{4D7A4D}
+
+\lstdefinestyle{code}{
+    backgroundcolor=\color{codebg},
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{codekw}\bfseries,
+    stringstyle=\color{codestring},
+    commentstyle=\color{codecomment},
+    frame=single,
+    rulecolor=\color{codeborder},
+    breaklines=true,
+    columns=fullflexible,
+    showstringspaces=false,
+    tabsize=4
+}
+
+\lstset{style=code}
+
+\title{\textbf{Tariqi Legal AI}\\
+\large Assistant juridique RAG du code de la route marocain}
+\author{Projet Python, RAG et Streamlit}
+\date{2026}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Résumé}
+
+Tariqi Legal AI est un assistant juridique informatif consacré au code de la route marocain.
+Il aide l'utilisateur à comprendre les infractions, les amendes, le permis à points et les
+procédures pratiques comme le paiement, la déclaration ou la réclamation.
+
+Le projet ne vise pas à préparer l'examen du permis. Il vise plutôt à fournir une réponse
+claire, sourcée et prudente à partir de sources institutionnelles marocaines.
+
+\section{Objectifs}
+
+\begin{itemize}[leftmargin=1.2cm]
+    \item Répondre aux questions juridiques routières à partir de sources fiables.
+    \item Citer les sources utilisées dans chaque réponse.
+    \item Calculer les montants indicatifs et points retirés à partir d'un CSV structuré.
+    \item Proposer des procédures simples pour paiement, déclaration et réclamation.
+    \item Fournir une application Streamlit utilisable et une interface CLI.
+\end{itemize}
+
+\section{Sources}
+
+Le système utilise prioritairement les sources suivantes :
+
+\begin{longtable}{p{4cm} p{8cm} p{2cm}}
+\toprule
+\textbf{Source} & \textbf{Usage} & \textbf{Niveau} \\
+\midrule
+\endhead
+SGG & Loi n° 52-05, textes consolidés, décrets & A+ \\
+Bulletin Officiel & Référence juridique opposable & A+ \\
+Ministère du Transport & Décret relatif aux règles de circulation & A+ \\
+Khadamat NARSA & Infractions, paiement, déclaration, réclamation & A \\
+NARSA & Permis à points et tableaux de retrait de points & A \\
+\bottomrule
+\end{longtable}
+
+Les blogs, forums, vidéos, posts de réseaux sociaux et PDF non traçables ne sont pas utilisés
+comme base principale de réponse.
+
+\section{Architecture}
+
+\begin{lstlisting}
+tariqi-legal-ai/
+|-- app/                  Interface Streamlit
+|-- data/
+|   |-- raw/              Sources brutes locales non versionnées
+|   |-- seed/             Corpus de départ
+|   |-- structured/       CSV infractions et procédures
+|-- docs/                 Documentation et rapport
+|-- scripts/              Commandes CLI
+|-- src/tariqi/           Code métier
+|-- tests/                Tests unitaires
+|-- vectorstore/          Index généré
+\end{lstlisting}
+
+\section{Pipeline RAG}
+
+Le pipeline RAG fonctionne en deux phases.
+
+\subsection{Indexation}
+
+\begin{enumerate}[leftmargin=1.2cm]
+    \item Charger les documents.
+    \item Nettoyer le texte.
+    \item Découper en chunks.
+    \item Ajouter les métadonnées : source, titre, section, date, langue, thème.
+    \item Créer les embeddings.
+    \item Sauvegarder l'index vectoriel.
+\end{enumerate}
+
+\subsection{Question}
+
+\begin{enumerate}[leftmargin=1.2cm]
+    \item Recevoir la question utilisateur.
+    \item Créer l'embedding de la question.
+    \item Rechercher les passages proches.
+    \item Appliquer un reranking lexical.
+    \item Construire une réponse structurée.
+    \item Afficher les sources et la prudence juridique.
+\end{enumerate}
+
+\section{Modules réalisés}
+
+\subsection{Assistant juridique}
+
+Le module principal récupère les passages les plus pertinents, puis construit une réponse
+avec les sections suivantes :
+
+\begin{itemize}[leftmargin=1.2cm]
+    \item réponse courte ;
+    \item détails ;
+    \item conséquences possibles ;
+    \item procédure ;
+    \item sources ;
+    \item prudence juridique ;
+    \item niveau de confiance.
+\end{itemize}
+
+\subsection{Calculateur d'amende et de points}
+
+Le calculateur utilise le fichier :
+
+\begin{lstlisting}
+data/structured/infractions_maroc.csv
+\end{lstlisting}
+
+Il retourne le montant indicatif selon le délai de paiement, le nombre de points retirés,
+la classe de l'infraction et la source officielle.
+
+\subsection{Procédures}
+
+Les procédures sont décrites dans :
+
+\begin{lstlisting}
+data/structured/procedures.json
+\end{lstlisting}
+
+Elles couvrent notamment :
+
+\begin{itemize}[leftmargin=1.2cm]
+    \item paiement d'une contravention ;
+    \item déclaration d'un autre conducteur ;
+    \item réclamation ;
+    \item compréhension du retrait de points.
+\end{itemize}
+
+\subsection{Sources et vérification}
+
+Chaque source est décrite dans :
+
+\begin{lstlisting}
+data/raw/sources_manifest.json
+\end{lstlisting}
+
+Ce manifeste permet de garder une traçabilité claire entre les réponses et les documents
+institutionnels.
+
+\section{Commandes principales}
+
+\subsection{Construire l'index}
+
+\begin{lstlisting}[language=bash]
+python scripts/build_index.py
+\end{lstlisting}
+
+\subsection{Poser une question}
+
+\begin{lstlisting}[language=bash]
+python scripts/ask.py "Combien de points sont retirés pour un feu rouge ?"
+\end{lstlisting}
+
+\subsection{Calculer une amende}
+
+\begin{lstlisting}[language=bash]
+python scripts/calculate_fine.py --infraction "feu rouge" --delay 24h
+\end{lstlisting}
+
+\subsection{Lancer Streamlit}
+
+\begin{lstlisting}[language=bash]
+streamlit run app/streamlit_app.py
+\end{lstlisting}
+
+\section{Évaluation}
+
+Le projet contient un petit jeu de questions d'évaluation :
+
+\begin{lstlisting}
+data/structured/evaluation_questions.csv
+\end{lstlisting}
+
+La commande :
+
+\begin{lstlisting}[language=bash]
+python scripts/evaluate.py
+\end{lstlisting}
+
+vérifie si la première source retrouvée correspond à la source attendue.
+
+\section{Tests}
+
+La suite de tests couvre :
+
+\begin{itemize}[leftmargin=1.2cm]
+    \item le découpage en chunks ;
+    \item le calculateur d'amende ;
+    \item les procédures ;
+    \item l'indexation et la récupération de sources.
+\end{itemize}
+
+\begin{lstlisting}[language=bash]
+pytest
+\end{lstlisting}
+
+\section{Limites}
+
+\begin{itemize}[leftmargin=1.2cm]
+    \item Le corpus versionné est une base initiale, pas une reproduction complète des textes officiels.
+    \item Les PDF officiels doivent être téléchargés localement avec prudence.
+    \item Le backend local \texttt{hashing} sert aux démonstrations ; un backend OpenAI ou FAISS est préférable en production.
+    \item Les montants et points doivent être revérifiés lors de la mise à jour des sources.
+\end{itemize}
+
+\section{Améliorations possibles}
+
+\begin{itemize}[leftmargin=1.2cm]
+    \item Intégration complète des PDF SGG et NARSA.
+    \item Extraction automatique des tableaux PDF.
+    \item Ajout d'un reranker plus avancé.
+    \item Passage vers FAISS ou ChromaDB.
+    \item Ajout d'une interface bilingue français-arabe.
+    \item Historique des conversations et export PDF de la réponse.
+\end{itemize}
+
+\section{Conclusion}
+
+Tariqi Legal AI fournit une base complète et extensible pour un assistant RAG juridique
+du code de la route marocain. Le projet combine recherche documentaire, citations,
+données structurées, interface utilisateur et tests automatisés, tout en conservant une
+prudence juridique claire.
+
+\end{document}
