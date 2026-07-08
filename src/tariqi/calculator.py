@@ -4,7 +4,7 @@ import csv
 from dataclasses import dataclass
 from pathlib import Path
 
-from .cleaning import meaningful_tokens, normalize_for_search
+from .cleaning import matched_query_tokens, meaningful_tokens, normalize_for_search
 from .config import AppConfig
 
 
@@ -48,11 +48,17 @@ class FineCalculator:
                 )
             )
             label_tokens = meaningful_tokens(label)
-            overlap = len(query_tokens & label_tokens)
-            score = overlap / max(len(query_tokens), 1)
+            matched = matched_query_tokens(query_tokens, label_tokens)
+            unsupported = query_tokens - matched
+            min_overlap = 1 if len(query_tokens) == 1 else 2
+            score = len(matched) / max(len(query_tokens), 1)
             if normalized_query and normalized_query in label:
                 score += 1.0
-            if score >= 0.35:
+            if (
+                len(matched) >= min_overlap
+                and score >= 0.60
+                and len(unsupported) <= 1
+            ):
                 scored.append((score, row))
 
         scored.sort(key=lambda item: item[0], reverse=True)

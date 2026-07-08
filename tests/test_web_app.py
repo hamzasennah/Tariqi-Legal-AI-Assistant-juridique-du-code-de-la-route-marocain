@@ -62,6 +62,36 @@ def test_ask_endpoint_handles_natural_line_continuous_question() -> None:
     assert payload["sources"][0]["source_id"] == "narsa_tableau_points_pdf"
 
 
+def test_ask_endpoint_refuses_mixed_noise_query() -> None:
+    response = client.post(
+        "/api/ask",
+        json={"question": "pourquoi une voiture noire est interdite par police feu rouge?", "top_k": 5},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["confidence"] == "faible"
+    assert payload["sources"] == []
+    assert "Je ne trouve pas d'information fiable" in payload["answer_markdown"]
+
+
+def test_ask_endpoint_answers_authoroute_emergency_stop_question() -> None:
+    response = client.post(
+        "/api/ask",
+        json={
+            "question": "quelle sont les cas qui me permet de stopper dans une autoroute sans avoir des problemes avec police?",
+            "top_k": 5,
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["confidence"] in {"moyen", "élevé"}
+    assert "nécessité absolue" in payload["answer_markdown"]
+    assert "bande d'arrêt d'urgence" in payload["answer_markdown"]
+    assert payload["sources"][0]["source_id"] == "decret_2_10_420_regles_circulation"
+
+
 def test_calculate_endpoint() -> None:
     response = client.post(
         "/api/calculate",

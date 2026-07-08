@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from .config import AppConfig
 from .calculator import FineCalculator
-from .cleaning import meaningful_tokens
+from .cleaning import meaningful_tokens, normalize_for_search
 from .procedures import ProcedureGuide
 from .retriever import Retriever
 from .schemas import RAGAnswer, ScoredChunk
@@ -24,6 +24,10 @@ class TariqiAssistant:
         confidence = self._confidence(chunks)
         fine_result = FineCalculator(self.config.infractions_csv).calculate(question)
         procedure = ProcedureGuide(self.config.procedures_path).match(question)
+
+        if chunks and self._asks_for_rule_explanation(question):
+            answer_text = self._answer_without_llm(question, chunks, confidence)
+            return RAGAnswer(question, answer_text, chunks, confidence, used_llm=False)
 
         if fine_result.matched and fine_result.infraction:
             structured_confidence = self._structured_confidence(fine_result.infraction, confidence)
@@ -264,3 +268,30 @@ class TariqiAssistant:
         if trust in {"A+", "A"}:
             return "élevé"
         return fallback
+
+    def _asks_for_rule_explanation(self, question: str) -> bool:
+        tokens = set(meaningful_tokens(question))
+        explanation_terms = {
+            "autorise",
+            "autorisee",
+            "autorises",
+            "cas",
+            "droit",
+            "exception",
+            "exceptions",
+            "permet",
+            "possible",
+            "quand",
+        }
+        normalized = normalize_for_search(question)
+        explanation_phrases = {
+            "dans quel cas",
+            "quels cas",
+            "quelle sont les cas",
+            "me permet",
+            "est ce possible",
+            "ai je droit",
+        }
+        return bool(tokens & explanation_terms) or any(
+            phrase in normalized for phrase in explanation_phrases
+        )

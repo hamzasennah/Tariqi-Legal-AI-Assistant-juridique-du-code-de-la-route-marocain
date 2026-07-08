@@ -43,3 +43,27 @@ def test_retrieve_sgg_consolidated_texts(tmp_path: Path) -> None:
     chunks = Retriever(config).retrieve("Où trouver les textes consolidés du code de la route ?")
 
     assert chunks[0].chunk.source_id == "sgg_textes_consolides"
+
+
+def test_retriever_rejects_mixed_noise_query(tmp_path: Path) -> None:
+    config = make_config(tmp_path / "index.json")
+
+    build_index(config)
+    chunks = Retriever(config).retrieve(
+        "pourquoi une voiture noire est interdite par police feu rouge?",
+        top_k=3,
+    )
+
+    assert chunks == []
+
+
+def test_retriever_keeps_authoroute_emergency_stop_context(tmp_path: Path) -> None:
+    config = make_config(tmp_path / "index.json")
+
+    build_index(config)
+    chunks = Retriever(config).retrieve(
+        "quelle sont les cas qui me permet de stopper dans une autoroute sans avoir des problemes avec police?",
+        top_k=3,
+    )
+
+    assert chunks[0].chunk.source_id == "decret_2_10_420_regles_circulation"

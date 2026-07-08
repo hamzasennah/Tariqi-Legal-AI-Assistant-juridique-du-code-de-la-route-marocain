@@ -163,6 +163,21 @@ ou sans passage officiel suffisamment pertinent, il doit refuser de répondre et
 Ce comportement évite le faux RAG, c'est-à-dire une réponse générée à partir de passages
 faiblement liés ou choisis par hasard.
 
+Le moteur applique aussi des contrôles de qualité avant la réponse :
+
+- récupération hybride : similarité vectorielle + recherche lexicale contrôlée ;
+- couverture minimale de la question par le passage récupéré ;
+- rejet des requêtes mélangées quand trop de mots importants ne sont pas expliqués par la source ;
+- mêmes règles de pertinence pour le RAG et pour le calculateur CSV ;
+- routage des questions explicatives vers les passages juridiques, au lieu de répondre seulement avec un tableau de sanctions.
+
+Exemples de tests couverts :
+
+- `cc?` doit être refusé ;
+- `pourquoi une voiture noire est interdite par police feu rouge ?` doit être refusé ;
+- `quelle sont les cas qui me permet de stopper dans une autoroute... ?` doit répondre avec le décret sur l'arrêt d'urgence ;
+- `si je depasses une voiture dans une ligne continu ?` doit retrouver la ligne continue et la source NARSA.
+
 ## Licence et prudence
 
 Le code du projet peut être adapté librement selon la licence choisie par le propriétaire du dépôt. Les documents officiels restent la propriété de leurs éditeurs institutionnels. Ne pas redistribuer de PDF officiel sans vérifier les conditions applicables.

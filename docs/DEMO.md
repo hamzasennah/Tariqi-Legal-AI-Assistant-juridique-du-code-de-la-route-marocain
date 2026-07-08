@@ -69,7 +69,34 @@ Résultat attendu :
 - aucune source pertinente ;
 - message de refus au lieu d'une réponse inventée.
 
-## 6. Montrer l'application web
+Montrer ensuite une question mélangée qui contient un vrai mot-clé mais pas une vraie question juridique :
+
+```text
+pourquoi une voiture noire est interdite par police feu rouge?
+```
+
+Résultat attendu :
+
+- refus ;
+- aucune source ;
+- explication que le contexte récupéré n'est pas assez solide.
+
+## 6. Montrer une question réaliste mal formulée
+
+Entrer :
+
+```text
+quelle sont les cas qui me permet de stopper dans une autoroute sans avoir des problemes avec police?
+```
+
+À montrer :
+
+- récupération du décret n° 2-10-420 ;
+- réponse sur la nécessité absolue ;
+- source affichée ;
+- pas de réponse hors sujet sur la déclaration ou le paiement.
+
+## 7. Montrer l'application web
 
 ```bash
 python scripts/run_web.py
@@ -84,7 +111,7 @@ Pages à présenter :
 - Que faire maintenant ? ;
 - Sources.
 
-## 7. Montrer les tests
+## 8. Montrer les tests
 
 ```bash
 pytest
@@ -93,10 +120,10 @@ pytest
 Résultat attendu :
 
 ```text
-9 passed
+21 passed
 ```
 
-## 7. Phrase de conclusion
+## 9. Phrase de conclusion
 
 Tariqi Legal AI ne remplace pas les autorités ni un juriste. Il fournit une aide claire,
 structurée et sourcée à partir de sources institutionnelles marocaines.

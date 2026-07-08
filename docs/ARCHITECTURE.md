@@ -71,6 +71,10 @@ L'interface utilisateur est servie par FastAPI avec des routes API séparées :
 - Affichage obligatoire des sources.
 - Refus ou prudence si le score est faible.
 - Filtrage des passages sous le seuil de pertinence.
-- Refus automatique des questions trop courtes ou sans ancrage lexical dans les sources.
+- Refus automatique des questions trop courtes ou sans ancrage lexical suffisant dans les sources.
+- Contrôle de couverture : le passage doit expliquer une part suffisante des mots importants de la question.
+- Contrôle du bruit : si la question mélange des termes non couverts par la source, l'assistant refuse au lieu de répondre sur un seul mot-clé.
+- Retrieval hybride : les candidats viennent de l'index vectoriel et d'un filtre lexical, puis sont fusionnés et rerankés.
+- Routage de réponse : les questions explicatives utilisent d'abord les passages juridiques, alors que les questions de montant, points ou sanction peuvent utiliser le CSV structuré.
 - Mention claire : information générale, non conseil juridique définitif.
 - Priorité aux sources `A+` et `A`.

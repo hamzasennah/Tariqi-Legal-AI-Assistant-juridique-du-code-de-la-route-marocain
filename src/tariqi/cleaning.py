@@ -10,6 +10,8 @@ STOPWORDS = {
     "a",
     "au",
     "aux",
+    "avoir",
+    "cas",
     "avec",
     "ce",
     "cette",
@@ -25,6 +27,7 @@ STOPWORDS = {
     "et",
     "faire",
     "il",
+    "ici",
     "je",
     "la",
     "le",
@@ -33,8 +36,14 @@ STOPWORDS = {
     "ou",
     "par",
     "peut",
+    "permet",
+    "permettre",
+    "police",
     "point",
     "points",
+    "pourquoi",
+    "probleme",
+    "problemes",
     "pour",
     "que",
     "quel",
@@ -49,7 +58,26 @@ STOPWORDS = {
     "sur",
     "un",
     "une",
+    "vehicule",
+    "vehicules",
+    "voiture",
+    "voitures",
     "vous",
+}
+
+QUERY_SYNONYMS = {
+    "arreter": {"arret", "stationnement"},
+    "arrete": {"arret", "stationnement"},
+    "arreterai": {"arret", "stationnement"},
+    "depasser": {"depassement"},
+    "depasse": {"depassement"},
+    "depasses": {"depassement", "depasser"},
+    "depasserai": {"depassement"},
+    "continu": {"continue"},
+    "grille": {"franchissement", "non", "respect"},
+    "griller": {"franchissement", "non", "respect"},
+    "stopper": {"arret", "stationnement"},
+    "stoppe": {"arret", "stationnement"},
 }
 
 
@@ -77,3 +105,18 @@ def meaningful_tokens(text: str) -> set[str]:
         for token in normalized.split()
         if len(token) > 2 and token not in STOPWORDS
     }
+
+
+def expanded_query_tokens(tokens: set[str]) -> set[str]:
+    expanded = set(tokens)
+    for token in tokens:
+        expanded.update(QUERY_SYNONYMS.get(token, set()))
+    return expanded
+
+
+def matched_query_tokens(query_tokens: set[str], target_tokens: set[str]) -> set[str]:
+    matched = set()
+    for token in query_tokens:
+        if token in target_tokens or QUERY_SYNONYMS.get(token, set()) & target_tokens:
+            matched.add(token)
+    return matched
