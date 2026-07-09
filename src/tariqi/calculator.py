@@ -57,7 +57,7 @@ class FineCalculator:
             if (
                 len(matched) >= min_overlap
                 and score >= 0.60
-                and len(unsupported) <= 1
+                and len(unsupported) == 0
             ):
                 scored.append((score, row))
 

@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from .config import AppConfig
 from .calculator import FineCalculator
 from .cleaning import meaningful_tokens, normalize_for_search
+from .config import AppConfig
 from .procedures import ProcedureGuide
 from .retriever import Retriever
-from .schemas import RAGAnswer, ScoredChunk
-
+from .schemas import DocumentChunk, RAGAnswer, ScoredChunk
 
 LEGAL_WARNING = (
     "Cette réponse est informative. Elle ne remplace pas une décision officielle, "
@@ -20,7 +19,7 @@ class TariqiAssistant:
         self.retriever = Retriever(self.config)
 
     def ask(self, question: str, top_k: int = 5) -> RAGAnswer:
-        chunks = self.retriever.retrieve(question, top_k=top_k)
+        chunks = self._focused_chunks(self.retriever.retrieve(question, top_k=top_k))
         confidence = self._confidence(chunks)
         fine_result = FineCalculator(self.config.infractions_csv).calculate(question)
         procedure = ProcedureGuide(self.config.procedures_path).match(question)
@@ -31,20 +30,22 @@ class TariqiAssistant:
 
         if fine_result.matched and fine_result.infraction:
             structured_confidence = self._structured_confidence(fine_result.infraction, confidence)
+            sources = self._with_structured_source(chunks, fine_result.infraction)
             answer_text = self._infraction_answer(
                 fine_result,
-                chunks,
+                sources,
                 structured_confidence,
             )
-            return RAGAnswer(question, answer_text, chunks, structured_confidence, used_llm=False)
+            return RAGAnswer(question, answer_text, sources, structured_confidence, used_llm=False)
 
         if procedure:
+            sources = self._with_procedure_source(chunks, procedure)
             answer_text = self._procedure_answer(
                 procedure,
-                chunks,
+                sources,
                 confidence if chunks else "élevé",
             )
-            return RAGAnswer(question, answer_text, chunks, confidence if chunks else "élevé", used_llm=False)
+            return RAGAnswer(question, answer_text, sources, confidence if chunks else "élevé", used_llm=False)
 
         if not chunks:
             answer_text = self._no_relevant_source_answer(question)
@@ -80,6 +81,14 @@ class TariqiAssistant:
             ],
         )
         return response.output_text
+
+    def _focused_chunks(self, chunks: list[ScoredChunk]) -> list[ScoredChunk]:
+        if len(chunks) <= 1:
+            return chunks
+
+        best = chunks[0].score
+        focused = [item for item in chunks if item.score >= best - 0.08]
+        return focused or chunks[:1]
 
     def _answer_without_llm(
         self,
@@ -269,8 +278,77 @@ class TariqiAssistant:
             return "élevé"
         return fallback
 
+    def _with_structured_source(
+        self,
+        chunks: list[ScoredChunk],
+        row: dict[str, str],
+    ) -> list[ScoredChunk]:
+        source_id = self._source_id_for_structured_row(row)
+        if any(item.chunk.source_id == source_id and item.chunk.metadata.get("article_or_section") == row.get("article_ou_page") for item in chunks):
+            return chunks
+
+        chunk = DocumentChunk(
+            id=f"structured_{row.get('id_infraction', 'infraction')}",
+            source_id=source_id,
+            text=(
+                f"{row.get('nom_infraction', '')}. "
+                f"{row.get('sanction_possible', '')}. "
+                f"Points: {row.get('points_retires', 'non indiqué')}. "
+                f"Montants: {row.get('montant_24h', '')}/{row.get('montant_15j', '')}/{row.get('montant_30j', '')} DH."
+            ),
+            metadata={
+                "authority": row.get("source", ""),
+                "title": row.get("document", ""),
+                "document": row.get("document", ""),
+                "article_or_section": row.get("article_ou_page", ""),
+                "date_source": row.get("date_source", ""),
+                "theme": "infraction",
+                "trust_level": row.get("confiance", ""),
+                "url": row.get("source_url", ""),
+            },
+        )
+        return [ScoredChunk(chunk=chunk, score=1.0), *chunks]
+
+    def _with_procedure_source(
+        self,
+        chunks: list[ScoredChunk],
+        procedure: dict,
+    ) -> list[ScoredChunk]:
+        source_id = str(procedure.get("source_id", "procedure"))
+        if any(item.chunk.source_id == source_id for item in chunks):
+            return chunks
+
+        chunk = DocumentChunk(
+            id=f"procedure_{procedure.get('id', 'guide')}",
+            source_id=source_id,
+            text=f"{procedure.get('summary', '')} {procedure.get('warning', '')}".strip(),
+            metadata={
+                "authority": "Khadamat NARSA",
+                "title": procedure.get("title", "Procédure"),
+                "document": "Guide procédure",
+                "article_or_section": procedure.get("title", ""),
+                "date_source": "",
+                "theme": "procedure",
+                "trust_level": "A",
+                "url": procedure.get("url", ""),
+            },
+        )
+        return [ScoredChunk(chunk=chunk, score=1.0), *chunks]
+
+    def _source_id_for_structured_row(self, row: dict[str, str]) -> str:
+        url = row.get("source_url", "")
+        if "khadamatnarsa.ma/fr/services/infractions-routieres/paiement" in url:
+            return "khadamat_paiement_infractions"
+        if "tableaux%20des%20infractions" in url or "tableaux" in row.get("document", "").lower():
+            return "narsa_tableau_points_pdf"
+        return row.get("id_infraction", "structured_infraction")
+
     def _asks_for_rule_explanation(self, question: str) -> bool:
         tokens = set(meaningful_tokens(question))
+        normalized = normalize_for_search(question)
+        if "combien" in normalized:
+            return False
+
         explanation_terms = {
             "autorise",
             "autorisee",
@@ -283,15 +361,32 @@ class TariqiAssistant:
             "possible",
             "quand",
         }
-        normalized = normalize_for_search(question)
         explanation_phrases = {
             "dans quel cas",
             "quels cas",
             "quelle sont les cas",
             "me permet",
             "est ce possible",
+            "est ce que",
+            "consequence",
+            "consequences",
             "ai je droit",
         }
+        point_evidence_terms = {
+            "automatiquement",
+            "paiement",
+            "paye",
+            "payee",
+            "perdus",
+            "recuperation",
+            "recuperer",
+            "retrait",
+            "retire",
+            "retires",
+        }
+        if "points" in tokens and tokens & point_evidence_terms:
+            return True
+
         return bool(tokens & explanation_terms) or any(
             phrase in normalized for phrase in explanation_phrases
         )

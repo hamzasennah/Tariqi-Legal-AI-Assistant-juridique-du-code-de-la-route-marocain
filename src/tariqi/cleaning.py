@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 import unicodedata
 
-
 _WHITESPACE_RE = re.compile(r"\s+")
 
 STOPWORDS = {
@@ -17,6 +16,8 @@ STOPWORDS = {
     "cette",
     "combien",
     "comment",
+    "consequence",
+    "consequences",
     "dans",
     "de",
     "des",
@@ -34,13 +35,12 @@ STOPWORDS = {
     "les",
     "on",
     "ou",
+    "mon",
     "par",
     "peut",
     "permet",
     "permettre",
     "police",
-    "point",
-    "points",
     "pourquoi",
     "probleme",
     "problemes",
@@ -48,21 +48,23 @@ STOPWORDS = {
     "que",
     "quel",
     "quelle",
+    "quelles",
     "qui",
     "quoi",
-    "retire",
-    "retires",
     "risque",
     "sans",
     "sont",
     "sur",
     "un",
     "une",
+    "trouver",
     "vehicule",
     "vehicules",
     "voiture",
     "voitures",
     "vous",
+    "conducteur",
+    "conducteurs",
 }
 
 QUERY_SYNONYMS = {
@@ -76,6 +78,16 @@ QUERY_SYNONYMS = {
     "continu": {"continue"},
     "grille": {"franchissement", "non", "respect"},
     "griller": {"franchissement", "non", "respect"},
+    "paye": {"paiement", "payer"},
+    "payee": {"paiement", "payer"},
+    "payees": {"paiement", "payer"},
+    "payes": {"paiement", "payer"},
+    "pay": {"paiement", "payer"},
+    "retir": {"retrait"},
+    "retire": {"retrait"},
+    "retiree": {"retrait"},
+    "retirees": {"retrait"},
+    "retires": {"retrait"},
     "stopper": {"arret", "stationnement"},
     "stoppe": {"arret", "stationnement"},
 }
@@ -111,12 +123,53 @@ def expanded_query_tokens(tokens: set[str]) -> set[str]:
     expanded = set(tokens)
     for token in tokens:
         expanded.update(QUERY_SYNONYMS.get(token, set()))
+        expanded.update(token_variants(token))
     return expanded
 
 
 def matched_query_tokens(query_tokens: set[str], target_tokens: set[str]) -> set[str]:
     matched = set()
+    target_variants = expanded_query_tokens(target_tokens)
     for token in query_tokens:
-        if token in target_tokens or QUERY_SYNONYMS.get(token, set()) & target_tokens:
+        query_variants = token_variants(token) | QUERY_SYNONYMS.get(token, set()) | {token}
+        if query_variants & target_variants:
             matched.add(token)
     return matched
+
+
+def token_variants(token: str) -> set[str]:
+    variants = {token}
+    if token.startswith("pay"):
+        variants.add("pai" + token[3:])
+
+    suffixes = (
+        "ations",
+        "ation",
+        "itions",
+        "ition",
+        "ements",
+        "ement",
+        "issant",
+        "issants",
+        "antes",
+        "ante",
+        "ants",
+        "ant",
+        "ees",
+        "es",
+        "ee",
+        "er",
+        "ez",
+        "s",
+        "e",
+    )
+    for suffix in suffixes:
+        if len(token) > len(suffix) + 3 and token.endswith(suffix):
+            variants.add(token[: -len(suffix)])
+
+    if len(token) >= 5:
+        variants.add(token[:5])
+    if len(token) >= 7:
+        variants.add(token[:6])
+
+    return {variant for variant in variants if len(variant) >= 3}

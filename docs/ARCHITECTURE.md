@@ -75,6 +75,8 @@ L'interface utilisateur est servie par FastAPI avec des routes API séparées :
 - Contrôle de couverture : le passage doit expliquer une part suffisante des mots importants de la question.
 - Contrôle du bruit : si la question mélange des termes non couverts par la source, l'assistant refuse au lieu de répondre sur un seul mot-clé.
 - Retrieval hybride : les candidats viennent de l'index vectoriel et d'un filtre lexical, puis sont fusionnés et rerankés.
+- Filtrage des sources secondaires : les passages trop éloignés du meilleur score sont retirés de la réponse.
 - Routage de réponse : les questions explicatives utilisent d'abord les passages juridiques, alors que les questions de montant, points ou sanction peuvent utiliser le CSV structuré.
+- Traçabilité : les réponses issues du CSV structuré ou des procédures produisent aussi une source API afin que le panneau de droite reste cohérent.
 - Mention claire : information générale, non conseil juridique définitif.
 - Priorité aux sources `A+` et `A`.

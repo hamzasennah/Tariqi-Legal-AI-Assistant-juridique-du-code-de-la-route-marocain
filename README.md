@@ -177,6 +177,10 @@ Exemples de tests couverts :
 - `pourquoi une voiture noire est interdite par police feu rouge ?` doit être refusé ;
 - `quelle sont les cas qui me permet de stopper dans une autoroute... ?` doit répondre avec le décret sur l'arrêt d'urgence ;
 - `si je depasses une voiture dans une ligne continu ?` doit retrouver la ligne continue et la source NARSA.
+- `Que risque un conducteur qui utilise son téléphone en conduisant ?` doit retrouver la sanction téléphone au volant.
+- `Que risque-t-on si on conduit sans permis ?` doit citer la loi n° 52-05 et ne pas confondre avec le permis à points.
+- `Quel est le délai pour contester une contravention ?` doit répondre avec la procédure de réclamation, pas le paiement.
+- `J'ai payé mon amende, est-ce que les points sont retirés automatiquement ?` doit répondre prudemment avec la source NARSA sur le retrait de points.
 
 ## Licence et prudence
 

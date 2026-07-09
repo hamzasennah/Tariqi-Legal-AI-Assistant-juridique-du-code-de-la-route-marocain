@@ -1,17 +1,21 @@
 from __future__ import annotations
 
+from .cleaning import (
+    expanded_query_tokens,
+    matched_query_tokens,
+    meaningful_tokens,
+    normalize_for_search,
+)
 from .config import AppConfig
-from .cleaning import expanded_query_tokens, matched_query_tokens, meaningful_tokens, normalize_for_search
 from .embeddings import create_embedding_backend
 from .pipeline import build_index
 from .schemas import DocumentChunk, ScoredChunk
 from .vector_store import JsonVectorStore
 
-
 MIN_RELEVANCE_SCORE = 0.18
 MIN_QUERY_TOKEN_COUNT = 1
 MIN_QUERY_COVERAGE = 0.60
-MAX_UNSUPPORTED_QUERY_TERMS = 1
+MAX_UNSUPPORTED_QUERY_TERMS = 0
 
 
 class Retriever:
@@ -55,7 +59,7 @@ class Retriever:
         token_set = expanded_query_tokens(set(question_tokens))
         bigrams = {
             f"{a} {b}"
-            for a, b in zip(question_tokens, question_tokens[1:])
+            for a, b in zip(question_tokens, question_tokens[1:], strict=False)
             if len(a) > 2 and len(b) > 2
         }
 

@@ -34,7 +34,7 @@
     "id": "reclamer_contravention",
     "title": "Déposer une réclamation",
     "trigger_keywords": ["contester", "réclamation", "reclamer", "erreur", "radar"],
-    "summary": "La réclamation sert à contester un avis de contravention selon la procédure officielle.",
+    "summary": "La réclamation sert à contester un avis de contravention selon la procédure officielle, avec un délai de 30 jours à compter de la notification selon Khadamat NARSA.",
     "steps": [
       "Lire l'avis et identifier précisément le motif de contestation.",
       "Réunir les justificatifs utiles.",
@@ -44,7 +44,7 @@
     ],
     "source_id": "khadamat_reclamation",
     "url": "https://khadamatnarsa.ma/fr/reclamation",
-    "warning": "Ne pas laisser expirer le délai de réclamation. En cas de doute, contacter directement le service compétent."
+    "warning": "Ne pas laisser expirer le délai de 30 jours mentionné par Khadamat NARSA. En cas de doute, contacter directement le service compétent."
   },
   {
     "id": "comprendre_retrait_points",

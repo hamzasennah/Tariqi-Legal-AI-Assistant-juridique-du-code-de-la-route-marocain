@@ -24,8 +24,8 @@ Message attendu :
 
 ```text
 Index construit avec succès.
-Documents : 16
-Chunks : 16
+Documents : 22
+Chunks : 22
 Backend embeddings : hashing
 ```
 
@@ -120,7 +120,7 @@ pytest
 Résultat attendu :
 
 ```text
-21 passed
+28 passed
 ```
 
 ## 9. Phrase de conclusion
